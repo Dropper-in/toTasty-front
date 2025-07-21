@@ -1,0 +1,26 @@
+name: Sync Fork and Deploy to Vercel
+
+on:
+  repository_dispatch:
+    types: [original-repo-push]
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout target repository
+        uses: actions/checkout@v4
+        with:
+          repository: Dropper-in/toTasty-front.git
+          token: ${{ secrets.SYNC_TOKEN }}
+
+      - name: Add original remote
+        run: |
+          git remote add upstream https://github.com/to-tasty/toTasty-front.git
+          git fetch upstream
+
+      - name: Merge original to main
+        run: |
+          git checkout main
+          git merge upstream/main --allow-unrelated-histories -m "Sync: Merge upstream main into fork"
+          git push
