@@ -18,7 +18,7 @@ jobs:
 
       - name: Add upstream and sync
         run: |
-          git remote add upstream https://github.com/<OWNER>/<ORIGINAL_REPO>.git
+          git remote add upstream https://github.com/to-tasty/toTasty-front.git
           git fetch upstream
           git merge --ff-only upstream/main || echo "⚠️ 충돌 발생: 수동 해결 필요"
           git push origin HEAD:main
