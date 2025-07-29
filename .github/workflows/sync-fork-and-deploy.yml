@@ -1,0 +1,49 @@
+name: Sync from Upstream
+
+on:
+  repository_dispatch:
+    types: [sync_from_upstream]
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout release repo
+        uses: actions/checkout@v4
+
+      - name: Set up git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch upstream
+        run: |
+          git remote add upstream https://github.com/to-tasty/toTasty-front.git
+          git fetch upstream
+
+      - name: Backup sync workflow
+        run: |
+          cp .github/workflows/sync-fork-and-deploy.yml /tmp/sync.yml
+
+      - name: Hard reset to upstream/main
+        run: |
+          git checkout main
+          git reset --hard upstream/main
+
+      - name: Clean up all workflows
+        run: |
+          rm -rf .github/workflows/*
+
+      - name: Restore and commit sync workflow
+        run: |
+          cp /tmp/sync.yml .github/workflows/sync-fork-and-deploy.yml
+          git add .github/workflows/sync-fork-and-deploy.yml
+          git commit -m "🔄 sync with upstream + restore sync workflow" || echo "Nothing to commit"
+
+      - name: Force sync main with upstream
+        env:
+          PAT: ${{ secrets.SYNC_TOKEN }}
+        run: |
+          git remote set-url origin https://x-access-token:${PAT}@github.com/${{ github.repository }}
+          git push origin main --force
